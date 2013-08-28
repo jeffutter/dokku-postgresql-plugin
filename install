@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# Build MongoDB image
+docker build -q=true -t jeffutter/postgresql github.com/jeffutter/postgresql-docker
+
+if [[ ! -d /home/git/.postgresql ]]; then
+  mkdir -p /home/git/.postgresql
+fi
+
+admin_pass=$(openssl rand -base64 32)
+echo $admin_pass > /home/git/.postgresql/admin_pw
+
+chown -R git: /home/git/.postgresql
+
+apt-get -y install postgresql-client-9.1
+
+#id=$(docker ps -a|grep "jeffutter/postgresql:latest"| cut -f 1 -d ' ')
+#postgresql_port=$(docker port ${id} 5432)
+
+docker run jeffutter/postgresql su postgres sh -c "/usr/lib/postgresql/9.1/bin/postgres --single  -D  /var/lib/postgresql/9.1/main  -c config_file=/etc/postgresql/9.1/main/postgresql.conf <<< \"CREATE USER root WITH SUPERUSER PASSWORD '${admin_pass}';\"; /usr/lib/postgresql/9.1/bin/postgres -D /var/lib/postgresql/9.1/main -c config_file=/etc/postgresql/9.1/main/postgresql.conf"
