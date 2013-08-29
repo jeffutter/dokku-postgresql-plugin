@@ -1,0 +1,90 @@
+#!/bin/bash
+#set -e;
+
+# Check if name is specified
+if [[ $1 == postgresql:* ]]; then
+    if [[ -z $2 ]]; then
+        echo "You must specify an app name"
+        exit 1
+    else
+        APP="$2"
+        # Check if app exists with the same name
+        if [[ -d "/home/git/$APP" ]]; then
+            app_exists=true
+        else
+            app_exists=false
+        fi
+    fi
+fi
+
+check_exists() {
+  if [[ $app_exists == false ]]; then
+    echo "App must exist before creating postgresql storage for it"
+    exit 1
+  fi
+}
+
+set_dokku_env() {
+  env_path=$1
+  env_var=$2
+  env_val=$3
+  ex -sc "\"g/export ${env_var}=/d|x\"" "$env_path"
+  echo "export ${env_var}=\"${env_val}\"" >> "$env_path"
+}
+
+clear_dokku_env() {
+  local ref=$1[@]
+  for x in ${!ref}; do
+    ex -sc "g/${env_var}/d" -c "x" "$app_path/ENV"
+  done
+}
+
+app_path=/home/git/$APP
+
+admin_pass=$(cat /home/git/.postgresql/admin_pw)
+postgresql_database="${APP}-production"
+
+db_image=jeffutter/postgresql
+id=$(docker ps -a | grep "$db_image":latest |  awk '{print $1}')
+postgresql_port=$(docker port ${id} 27017)
+postgresql_ip=$(docker inspect ${id} | grep IPAddress | awk '{ print $2 }' | tr -d ',"')
+
+case "$1" in
+  postgresql:create)
+    check_exists
+
+    postgresql_password=$(openssl rand -base64 32|base64)
+    echo $postgresql_password > /home/git/.postgresql/pass_$APP
+
+    psql -h localhost -p "$postgresl_port" -U root -W $(cat /home/git/.postgresql/admin_pw) postgresql <<< "CREATE USER ${APP} WITH PASSWORD '${postgresql_password}';"
+    psql -h localhost -p "$postgresl_port" -U root -W $(cat /home/git/.postgresql/admin_pw) postgresql <<< "CREATE DATABASE ${APP}-production;"
+    psql -h localhost -p "$postgresl_port" -U root -W $(cat /home/git/.postgresql/admin_pw) postgresql <<< "GRANT ALL PRIVILEGES ON DATABASE ${APP}-production to ${APP};"
+
+    postgresql_port=27017
+    if [[ ! -f /home/git/$APP/ENV ]]; then
+      touch /home/git/$APP/ENV
+    fi
+    set_dokku_env $app_path/ENV DATABASE_URL "postgres://${APP}:${postgresql_password}@${postgresql_ip}:${postgresql_port}/${APP}-production"
+    chown git: $app_path/ENV
+    ;;
+  postgresql:delete)
+    check_exists
+
+    psql -h localhost -p "$postgresl_port" -U root -W $(cat /home/git/.postgresql/admin_pw) postgresql <<< "DROP DATABASE ${APP}-production;"
+    psql -h localhost -p "$postgresl_port" -U root -W $(cat /home/git/.postgresql/admin_pw) postgresql <<< "DROP USER ${APP};"
+
+    if [[ ! -f $app_path/ENV ]]; then
+      touch $app_path/ENV
+    fi
+
+    VARS=( "DATABASE_URL" )
+    clear_dokku_env VARS 
+
+    chown git: $app_path/ENV
+    ;;
+  postgresql:list)
+    psql -h localhost -p "$postgresl_port" -U root -W $(cat /home/git/.postgresql/admin_pw) postgresql <<< "\list"
+    ;;
+esac
+
+cat

@@ -7,7 +7,7 @@ if [[ ! -d /home/git/.postgresql ]]; then
   mkdir -p /home/git/.postgresql
 fi
 
-admin_pass=$(openssl rand -base64 32)
+admin_pass=$(openssl rand -base64 32|base64)
 echo $admin_pass > /home/git/.postgresql/admin_pw
 
 chown -R git: /home/git/.postgresql
