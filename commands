@@ -57,12 +57,9 @@ case "$1" in
     echo $postgresql_password > /home/git/.postgresql/pass_$APP
 
     admin_pw=$(cat /home/git/.postgresql/admin_pw)
-    echo "localhost:*:*:root:$admin_pw}" > ~/.pgpass
-    chmod 0600 ~/.pgpass
-    psql -h localhost -p "$postgresql_port" -U root -w postgresql <<< "CREATE USER ${APP} WITH PASSWORD '${postgresql_password}';"
-    psql -h localhost -p "$postgresql_port" -U root -w postgresql <<< "CREATE DATABASE ${APP}-production;"
-    psql -h localhost -p "$postgresql_port" -U root -w postgresql <<< "GRANT ALL PRIVILEGES ON DATABASE ${APP}-production to ${APP};"
-    rm ~/.pgpass
+    PGPASSWORD="$admin_pw" PGUSER=root psql -h localhost -p "$postgresql_port" -w template1 <<< "CREATE USER ${APP} WITH PASSWORD '${postgresql_password}';"
+    PGPASSWORD="$admin_pw" PGUSER=root psql -h localhost -p "$postgresql_port" -w template1 <<< "CREATE DATABASE ${APP}-production;"
+    PGPASSWORD="$admin_pw" PGUSER=root psql -h localhost -p "$postgresql_port" -w template1 <<< "GRANT ALL PRIVILEGES ON DATABASE ${APP}-production to ${APP};"
 
     postgresql_port=5432
     if [[ ! -f /home/git/$APP/ENV ]]; then
@@ -75,11 +72,8 @@ case "$1" in
     check_exists
 
     admin_pw=$(cat /home/git/.postgresql/admin_pw)
-    echo "localhost:*:postgresql:root:$admin_pw}" > ~/.pgpass
-    chmod 0600 ~/.pgpass
-    psql -h localhost -p "$postgresql_port" -U root -w postgresql <<< "DROP DATABASE ${APP}-production;"
-    psql -h localhost -p "$postgresql_port" -U root -w postgresql <<< "DROP USER ${APP};"
-    rm ~/.pgpass
+    PGPASSWORD="$admin_pw" PGUSER=root psql -h localhost -p "$postgresql_port" -w template1 <<< "DROP DATABASE ${APP}-production;"
+    PGPASSWORD="$admin_pw" PGUSER=root psql -h localhost -p "$postgresql_port" -w template1 <<< "DROP USER ${APP};"
 
     if [[ ! -f $app_path/ENV ]]; then
       touch $app_path/ENV
@@ -92,11 +86,7 @@ case "$1" in
     ;;
   postgresql:list)
     admin_pw=$(cat /home/git/.postgresql/admin_pw)
-    echo "localhost:*:postgresql:root:$admin_pw}" > ~/.pgpass
-    chmod 0600 ~/.pgpass
-
-    psql -h localhost -p "$postgresql_port" -U root -w postgresql <<< "\list"
-    rm ~/.pgpass
+    PGPASSWORD="$admin_pw" PGUSER=root psql -h localhost -p "$postgresql_port" -w template1 <<< "\list"
     ;;
 esac
 
