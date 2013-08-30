@@ -46,8 +46,8 @@ postgresql_database="${APP}-production"
 
 db_image=jeffutter/postgresql
 id=$(docker ps -a | grep "$db_image":latest |  awk '{print $1}')
-postgresql_port=$(docker port ${id} 27017)
-postgresql_ip=$(docker inspect ${id} | grep IPAddress | awk '{ print $2 }' | tr -d ',"')
+postgresql_port=$(docker port "$id" 27017)
+postgresql_ip=$(docker inspect "$id" | grep IPAddress | awk '{ print $2 }' | tr -d ',"')
 
 case "$1" in
   postgresql:create)
