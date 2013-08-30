@@ -28,14 +28,14 @@ set_dokku_env() {
   env_path=$1
   env_var=$2
   env_val=$3
-  ex -sc "\"g/export ${env_var}=/d|x\"" "$env_path"
+  ex -s -c "g/export ${env_var}=/d" -c "x" "$env_path"
   echo "export ${env_var}=\"${env_val}\"" >> "$env_path"
 }
 
 clear_dokku_env() {
   local ref=$1[@]
   for x in ${!ref}; do
-    ex -sc "g/${env_var}/d" -c "x" "$app_path/ENV"
+    ex -s -c "g/${env_var}/d" -c "x" "$app_path/ENV"
   done
 }
 
@@ -56,9 +56,13 @@ case "$1" in
     postgresql_password=$(openssl rand -base64 32|base64)
     echo $postgresql_password > /home/git/.postgresql/pass_$APP
 
-    psql -h localhost -p "$postgresl_port" -U root -W $(cat /home/git/.postgresql/admin_pw) postgresql <<< "CREATE USER ${APP} WITH PASSWORD '${postgresql_password}';"
-    psql -h localhost -p "$postgresl_port" -U root -W $(cat /home/git/.postgresql/admin_pw) postgresql <<< "CREATE DATABASE ${APP}-production;"
-    psql -h localhost -p "$postgresl_port" -U root -W $(cat /home/git/.postgresql/admin_pw) postgresql <<< "GRANT ALL PRIVILEGES ON DATABASE ${APP}-production to ${APP};"
+    admin_pw=$(cat /home/git/.postgresql/admin_pw)
+    echo "localhost:${postgresl_port}:postgresql:root:$admin_pw}" > ~/.pgpass
+    chmod 0600 ~/.pgpass
+    psql -h localhost -p "$postgresl_port" -U root postgresql <<< "CREATE USER ${APP} WITH PASSWORD '${postgresql_password}';"
+    psql -h localhost -p "$postgresl_port" -U root postgresql <<< "CREATE DATABASE ${APP}-production;"
+    psql -h localhost -p "$postgresl_port" -U root postgresql <<< "GRANT ALL PRIVILEGES ON DATABASE ${APP}-production to ${APP};"
+    rm ~/.pgpass
 
     postgresql_port=27017
     if [[ ! -f /home/git/$APP/ENV ]]; then
@@ -70,8 +74,12 @@ case "$1" in
   postgresql:delete)
     check_exists
 
-    psql -h localhost -p "$postgresl_port" -U root -W $(cat /home/git/.postgresql/admin_pw) postgresql <<< "DROP DATABASE ${APP}-production;"
-    psql -h localhost -p "$postgresl_port" -U root -W $(cat /home/git/.postgresql/admin_pw) postgresql <<< "DROP USER ${APP};"
+    admin_pw=$(cat /home/git/.postgresql/admin_pw)
+    echo "localhost:${postgresl_port}:postgresql:root:$admin_pw}" > ~/.pgpass
+    chmod 0600 ~/.pgpass
+    psql -h localhost -p "$postgresl_port" -U root postgresql <<< "DROP DATABASE ${APP}-production;"
+    psql -h localhost -p "$postgresl_port" -U root postgresql <<< "DROP USER ${APP};"
+    rm ~/.pgpass
 
     if [[ ! -f $app_path/ENV ]]; then
       touch $app_path/ENV
@@ -83,7 +91,11 @@ case "$1" in
     chown git: $app_path/ENV
     ;;
   postgresql:list)
-    psql -h localhost -p "$postgresl_port" -U root -W $(cat /home/git/.postgresql/admin_pw) postgresql <<< "\list"
+    admin_pw=$(cat /home/git/.postgresql/admin_pw)
+    echo "localhost:${postgresl_port}:postgresql:root:$admin_pw}" > ~/.pgpass
+    chmod 0600 ~/.pgpass
+    psql -h localhost -p "$postgresl_port" -U root postgresql <<< "\list"
+    rm ~/.pgpass
     ;;
 esac
 
