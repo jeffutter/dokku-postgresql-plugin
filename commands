@@ -42,7 +42,7 @@ clear_dokku_env() {
 app_path=/home/git/$APP
 
 admin_pass=$(cat /home/git/.postgresql/admin_pw)
-postgresql_database="${APP}-production"
+postgresql_database="${APP}_production"
 
 db_image=jeffutter/postgresql
 id=$(docker ps | grep "$db_image":latest |  awk '{print $1}')
@@ -58,21 +58,21 @@ case "$1" in
 
     admin_pw=$(cat /home/git/.postgresql/admin_pw)
     PGPASSWORD="$admin_pw" PGUSER=root psql -h localhost -p "$postgresql_port" -w template1 <<< "CREATE USER ${APP} WITH PASSWORD '${postgresql_password}';"
-    PGPASSWORD="$admin_pw" PGUSER=root psql -h localhost -p "$postgresql_port" -w template1 <<< "CREATE DATABASE ${APP}-production;"
-    PGPASSWORD="$admin_pw" PGUSER=root psql -h localhost -p "$postgresql_port" -w template1 <<< "GRANT ALL PRIVILEGES ON DATABASE ${APP}-production to ${APP};"
+    PGPASSWORD="$admin_pw" PGUSER=root psql -h localhost -p "$postgresql_port" -w template1 <<< "CREATE DATABASE ${postgresql_database};"
+    PGPASSWORD="$admin_pw" PGUSER=root psql -h localhost -p "$postgresql_port" -w template1 <<< "GRANT ALL PRIVILEGES ON DATABASE ${postgresql_database} to ${APP};"
 
     postgresql_port=5432
     if [[ ! -f /home/git/$APP/ENV ]]; then
       touch /home/git/$APP/ENV
     fi
-    set_dokku_env $app_path/ENV DATABASE_URL "postgres://${APP}:${postgresql_password}@${postgresql_ip}:${postgresql_port}/${APP}-production"
+    set_dokku_env $app_path/ENV DATABASE_URL "postgres://${APP}:${postgresql_password}@${postgresql_ip}:${postgresql_port}/${postgresql_database}"
     chown git: $app_path/ENV
     ;;
   postgresql:delete)
     check_exists
 
     admin_pw=$(cat /home/git/.postgresql/admin_pw)
-    PGPASSWORD="$admin_pw" PGUSER=root psql -h localhost -p "$postgresql_port" -w template1 <<< "DROP DATABASE ${APP}-production;"
+    PGPASSWORD="$admin_pw" PGUSER=root psql -h localhost -p "$postgresql_port" -w template1 <<< "DROP DATABASE ${postgresql_database};"
     PGPASSWORD="$admin_pw" PGUSER=root psql -h localhost -p "$postgresql_port" -w template1 <<< "DROP USER ${APP};"
 
     if [[ ! -f $app_path/ENV ]]; then
