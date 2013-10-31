@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Build MongoDB image
+# Build PostgreSQL image
 docker build -q=true -t jeffutter/postgresql github.com/jeffutter/postgresql-docker
 
 if [[ ! -d /home/git/.postgresql ]]; then
