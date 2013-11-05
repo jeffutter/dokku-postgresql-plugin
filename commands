@@ -78,7 +78,7 @@ case "$1" in
     if [[ "$id" != "" ]]; then
       echo "Postgresql container already running with ID: ${id}"
     else
-      docker run -p 5432:5432 -d -v "$DOKKU_ROOT/.postgresql/data":/var/lib/postgresql/9.1/main "$db_image" /usr/lib/postgresql/9.1/bin/postgres -D /var/lib/postgresql/9.1/main -c config_file=/etc/postgresql/9.1/main/postgresql.conf
+      docker run -p 5432:5432 -d -v "$DOKKU_ROOT/.postgresql/data":/var/lib/postgresql/9.1/main "$db_image" su postgres -c "/usr/lib/postgresql/9.1/bin/postgres -D /var/lib/postgresql/9.1/main -c config_file=/etc/postgresql/9.1/main/postgresql.conf"
     fi
     ;;
   postgresql:stop)
