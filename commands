@@ -50,9 +50,9 @@ case "$1" in
     echo $postgresql_password > "$DOKKU_ROOT/.postgresql/pass_$APP"
 
     admin_pw=$(cat "$DOKKU_ROOT/.postgresql/admin_pw")
-    PGPASSWORD="$admin_pw" PGUSER=root psql -h "$postgresql_public_ip" -p "$postgresql_port" -w template1 <<< "CREATE USER ${APP} WITH PASSWORD '${postgresql_password}';"
-    PGPASSWORD="$admin_pw" PGUSER=root psql -h "$postgresql_public_ip" -p "$postgresql_port" -w template1 <<< "CREATE DATABASE ${postgresql_database};"
-    PGPASSWORD="$admin_pw" PGUSER=root psql -h "$postgresql_public_ip" -p "$postgresql_port" -w template1 <<< "GRANT ALL PRIVILEGES ON DATABASE ${postgresql_database} to ${APP};"
+    PGPASSWORD="$admin_pw" PGUSER=root psql -h "$postgresql_public_ip" -p "$postgresql_port" -w template1 <<< "CREATE USER \"${APP}\" WITH PASSWORD '${postgresql_password}';"
+    PGPASSWORD="$admin_pw" PGUSER=root psql -h "$postgresql_public_ip" -p "$postgresql_port" -w template1 <<< "CREATE DATABASE \"${postgresql_database}\";"
+    PGPASSWORD="$admin_pw" PGUSER=root psql -h "$postgresql_public_ip" -p "$postgresql_port" -w template1 <<< "GRANT ALL PRIVILEGES ON DATABASE \"${postgresql_database}\" to \"${APP}\";"
 
     postgresql_port=5432
     dokku config:set "$APP" DATABASE_URL="postgres://${APP}:${postgresql_password}@${postgresql_private_ip}:${postgresql_port}/${postgresql_database}"
@@ -63,8 +63,8 @@ case "$1" in
     check_exists
 
     admin_pw=$(cat "$DOKKU_ROOT/.postgresql/admin_pw")
-    PGPASSWORD="$admin_pw" PGUSER=root psql -h "$postgresql_public_ip" -p "$postgresql_port" -w template1 <<< "DROP DATABASE ${postgresql_database};"
-    PGPASSWORD="$admin_pw" PGUSER=root psql -h "$postgresql_public_ip" -p "$postgresql_port" -w template1 <<< "DROP USER ${APP};"
+    PGPASSWORD="$admin_pw" PGUSER=root psql -h "$postgresql_public_ip" -p "$postgresql_port" -w template1 <<< "DROP DATABASE \"${postgresql_database}\";"
+    PGPASSWORD="$admin_pw" PGUSER=root psql -h "$postgresql_public_ip" -p "$postgresql_port" -w template1 <<< "DROP USER \"${APP}\";"
 
     dokku config:unset "$APP" DATABASE_URL
     ;;
