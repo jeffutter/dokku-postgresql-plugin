@@ -11,10 +11,12 @@ if [[ ! -d "$DOKKU_ROOT/.postgresql" ]]; then
   mkdir -p "$DOKKU_ROOT/.postgresql/data"
   docker run "$db_image" tar -cvps -C /var/lib/postgresql/9.1/main ./ | tar -xv -C "$DOKKU_ROOT/.postgresql/data/" -f -
 
-  admin_pass=$(openssl rand -base64 32|base64)
-  echo $admin_pass > "$DOKKU_ROOT/.postgresql/admin_pw"
+  if [[ ! -f "$DOKKU_ROOT/.postgresql/admin_pw" ]]; then
+    admin_pass=$(openssl rand -base64 32|base64)
+    echo $admin_pass > "$DOKKU_ROOT/.postgresql/admin_pw"
 
-  chown -R dokku: "$DOKKU_ROOT/.postgresql/admin_pw"
+    chown -R dokku: "$DOKKU_ROOT/.postgresql/admin_pw"
 
-  docker run -v "$DOKKU_ROOT/.postgresql/data":/var/lib/postgresql/9.1/main "$db_image" su postgres -c "/usr/lib/postgresql/9.1/bin/postgres --single -D /var/lib/postgresql/9.1/main -c config_file=/etc/postgresql/9.1/main/postgresql.conf <<< \"CREATE USER root WITH SUPERUSER PASSWORD '${admin_pass}';\""
+    docker run -v "$DOKKU_ROOT/.postgresql/data":/var/lib/postgresql/9.1/main "$db_image" su postgres -c "/usr/lib/postgresql/9.1/bin/postgres --single -D /var/lib/postgresql/9.1/main -c config_file=/etc/postgresql/9.1/main/postgresql.conf <<< \"CREATE USER root WITH SUPERUSER PASSWORD '${admin_pass}';\""
+  fi
 fi
