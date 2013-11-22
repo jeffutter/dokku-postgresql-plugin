@@ -85,7 +85,7 @@ case "$1" in
     ;;
   postgresql:stop)
     check_container
-    mongo $postgresql_public_ip:$postgresql_port/admin --quiet -u admin -p"$admin_pass" --authenticationDatabase="admin" --eval "db.shutdownServer()"
+    docker stop ${id}
     ;;
   postgresql:status)
     if [[ "$id" != "" ]]; then
