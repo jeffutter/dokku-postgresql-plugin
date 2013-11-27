@@ -25,7 +25,7 @@ $ dokku help
      postgresql:stop         Stop the PostgreSQL docker container
 ```
 
-Simple usage
+Usage
 ------------
 
 Start PostgreSQL:
