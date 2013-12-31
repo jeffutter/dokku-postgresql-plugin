@@ -73,7 +73,7 @@ case "$1" in
     dokku config:set "$APP" PG_USER="$APP"
     dokku config:set "$APP" PG_PASS="$postgresql_password"
     dokku config:set "$APP" PG_DB="$postgresql_database"
-    echo "export DATABASE_URL=\"postgress://${PG_USER}:${PG_PASS}@${POSTGRESQL_PORT_5432_TCP_ADDR}:${POSTGRESQL_PORT_5432_TCP_PORT}/${PG_DB}\"" >> "$DOKKU_ROOT/$APP/ENV"
+    echo 'export DATABASE_URL="postgress://${PG_USER}:${PG_PASS}@${POSTGRESQL_PORT_5432_TCP_ADDR}:${POSTGRESQL_PORT_5432_TCP_PORT}/${PG_DB}"' >> "$DOKKU_ROOT/$APP/ENV"
     ;;
   postgresql:delete)
     check_container
