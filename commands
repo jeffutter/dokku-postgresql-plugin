@@ -57,11 +57,10 @@ case "$1" in
     PGPASSWORD="$admin_pw" PGUSER=root psql -h "$postgresql_public_ip" -p "$postgresql_port" -w template1 <<< "GRANT ALL PRIVILEGES ON DATABASE \"${postgresql_database}\" to \"${APP}\";"
 
     postgresql_port=5432
-    #dokku config:set "$APP" DATABASE_URL="postgres://${APP}:${postgresql_password}@${postgresql_private_ip}:${postgresql_port}/${postgresql_database}"
-    dokku config:set "$APP" PG_USER="$APP"
-    dokku config:set "$APP" PG_PASS="$postgresql_password"
-    dokku config:set "$APP" PG_DB="$postgresql_database"
-    echo 'export DATABASE_URL="postgress://${PG_USER}:${PG_PASS}@${POSTGRESQL_PORT_5432_TCP_ADDR}:${POSTGRESQL_PORT_5432_TCP_PORT}/${PG_DB}"' >> "$DOKKU_ROOT/$APP/ENV"
+    dokku config:set "$APP" DATABASE_APP="$APP"
+    dokku config:set "$APP" DATABASE_PASS="$postgresql_password"
+    dokku config:set "$APP" DATABASE_DB="$postgresql_database"
+    dokku config:set "$APP" DATABASE_URL='"postgress://${DATABASE_APP}:${DATABASE_PASS}@${DATABASE_PORT_5432_TCP_ADDR}:${DATABASE_PORT_5432_TCP_PORT}/${DATABASE_DB}"'
     ;;
   postgresql:delete)
     check_container
@@ -73,7 +72,6 @@ case "$1" in
     PGPASSWORD="$admin_pw" PGUSER=root psql -h "$postgresql_public_ip" -p "$postgresql_port" -w template1 <<< "DROP USER \"${APP}\";"
 
     dokku config:unset "$APP" DATABASE_URL
-    #ex -s -c "g/export DATABASE_URL=/d" -c "x" "$DOKKU_ROOT/$APP/ENV"
     ;;
   postgresql:list)
     check_container
