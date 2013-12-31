@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -eo pipefail; [[ $DOKKU_TRACE ]] && set -x
+
+STDIN=$(cat)
+APP="$1"
+
+if [[ -f "$DOKKU_ROOT/.postgresql/pass_$APP" ]]; then
+  echo "-link jeffutter-postgresql:postgresql"
+fi
