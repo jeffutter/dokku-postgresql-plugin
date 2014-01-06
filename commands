@@ -96,8 +96,8 @@ case "$1" in
     ;;
   help)
     cat && cat<<EOF
-    postgresql:create <app> Create a Mongo database
-    postgresql:delete <app> Delete specified Mongo database
+    postgresql:create <app> Create a Postgresql database
+    postgresql:delete <app> Delete specified Postgresql database
     postgresql:start        Start the Postgresql docker container if it isn't running
     postgresql:stop         Stop the Postgresql docker container
     postgresql:status       Shows status of Postgresql
@@ -105,5 +105,3 @@ case "$1" in
 EOF
     ;;
 esac
-
-cat
