@@ -2,7 +2,7 @@
 
 # Build MongoDB image
 db_image="jeffutter/postgresql"
-docker build -q=true -t "$db_image" github.com/jeffutter/postgresql-docker
+docker pull -t "$db_image" jeffutter/postgresql-docker
 
 apt-get -y install postgresql-client-9.1
 
