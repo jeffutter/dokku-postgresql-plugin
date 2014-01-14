@@ -5,5 +5,5 @@ STDIN=$(cat)
 APP="$1"
 
 if [[ -f "$DOKKU_ROOT/.postgresql/pass_$APP" ]]; then
-  echo "-link jeffutter-postgresql:database"
+  echo "-link dokku-postgresql:database"
 fi

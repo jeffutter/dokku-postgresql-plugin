@@ -34,9 +34,9 @@ db_image=jeffutter/postgresql
 
 id=$(docker ps | grep "$db_image":latest |  awk '{print $1}')
 if [[ -n "$id" ]]; then
-  postgresql_public_ip=$(docker port ${id} 5432 | awk '{split($0,a,":"); print a[1]}')
-  postgresql_private_ip=$(docker inspect ${id} | grep IPAddress | awk '{ print $2 }' | tr -d ',"')
-  postgresql_port=$(docker port ${id} 5432 | awk '{split($0,a,":"); print a[2]}')
+  postgresql_public_ip=$(docker port dokku-postgresql 5432 | awk '{split($0,a,":"); print a[1]}')
+  postgresql_private_ip=$(docker inspect dokku-postgresql | grep IPAddress | awk '{ print $2 }' | tr -d ',"')
+  postgresql_port=$(docker port dokku-postgresql 5432 | awk '{split($0,a,":"); print a[2]}')
   if [[ $postgresql_public_ip = "0.0.0.0" ]]; then
     postgresql_public_ip=localhost
   fi
@@ -57,10 +57,12 @@ case "$1" in
     PGPASSWORD="$admin_pw" PGUSER=root psql -h "$postgresql_public_ip" -p "$postgresql_port" -w template1 <<< "GRANT ALL PRIVILEGES ON DATABASE \"${postgresql_database}\" to \"${APP}\";"
 
     postgresql_port=5432
-    dokku config:set "$APP" DATABASE_APP="$APP"
-    dokku config:set "$APP" DATABASE_PASS="$postgresql_password"
-    dokku config:set "$APP" DATABASE_DB="$postgresql_database"
-    dokku config:set "$APP" DATABASE_URL='"postgress://${DATABASE_APP}:${DATABASE_PASS}@${DATABASE_PORT_5432_TCP_ADDR}:${DATABASE_PORT_5432_TCP_PORT}/${DATABASE_DB}"'
+    dokku config:set "$APP" DATABASE_URL="postgres://${APP}:${postgresql_password}@\${DATABASE_PORT_${postgresql_port}_TCP_ADDR}:\${DATABASE_PORT_${postgresql_port}_TCP_PORT}/${postgresql_database}" \
+      DATABASE_USERNAME="$APP" \
+      DATABASE_PASSWORD="$postgresql_password" \
+      DATABASE_DATABASE="$postgresql_database" \
+      DATABASE_HOST="\${DATABASE_PORT_${postgresql_port}_TCP_ADDR}" \
+      DATABASE_PORT="\${DATABASE_PORT_${postgresql_port}_TCP_PORT}"
     ;;
   postgresql:delete)
     check_container
@@ -71,7 +73,7 @@ case "$1" in
     PGPASSWORD="$admin_pw" PGUSER=root psql -h "$postgresql_public_ip" -p "$postgresql_port" -w template1 <<< "DROP DATABASE \"${postgresql_database}\";"
     PGPASSWORD="$admin_pw" PGUSER=root psql -h "$postgresql_public_ip" -p "$postgresql_port" -w template1 <<< "DROP USER \"${APP}\";"
 
-    dokku config:unset "$APP" DATABASE_URL
+    dokku config:unset "$APP" DATABASE_URL DATABASE_USERNAME DATABASE_PASSWORD DATABASE_DATABASE DATABASE_HOST DATABASE_PORT
     ;;
   postgresql:list)
     check_container
@@ -83,12 +85,13 @@ case "$1" in
     if [[ "$id" != "" ]]; then
       echo "Postgresql container already running with ID: ${id}"
     else
-      docker run -p 5432:5432 -d -name ju-postgresql -v "$DOKKU_ROOT/.postgresql/data":/var/lib/postgresql/9.1/main "$db_image" bash -c "chown -R postgres:postgres /var/lib/postgresql/9.1/main; su postgres -c \"/usr/lib/postgresql/9.1/bin/postgres -D /var/lib/postgresql/9.1/main -c config_file=/etc/postgresql/9.1/main/postgresql.conf\""
+      docker run -p 5432:5432 -d -name dokku-postgresql -v "$DOKKU_ROOT/.postgresql/data":/var/lib/postgresql/9.1/main "$db_image" bash -c "chown -R postgres:postgres /var/lib/postgresql/9.1/main; su postgres -c \"/usr/lib/postgresql/9.1/bin/postgres -D /var/lib/postgresql/9.1/main -c config_file=/etc/postgresql/9.1/main/postgresql.conf\""
     fi
     ;;
   postgresql:stop)
     check_container
-    docker stop ${id}
+    docker stop dokku-postgresql
+    docker rm dokku-postgresql
     ;;
   postgresql:status)
     if [[ "$id" != "" ]]; then
