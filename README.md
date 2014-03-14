@@ -17,12 +17,13 @@ Commands
 --------
 ```
 $ dokku help
-     postgresql:create <app> Create a PostgreSQL database
-     postgresql:delete <app> Delete specified PostgreSQL database
-     postgresql:list         List all databases
-     postgresql:start        Start the PostgreSQL docker container if it isn't running
-     postgresql:status       Shows status of PostgreSQL
-     postgresql:stop         Stop the PostgreSQL docker container
+     postgresql:console <app> Launch a postgresql console for a given app
+     postgresql:create <app>  Create a PostgreSQL database
+     postgresql:delete <app>  Delete specified PostgreSQL database
+     postgresql:list          List all databases
+     postgresql:start         Start the PostgreSQL docker container if it isn't running
+     postgresql:status        Shows status of PostgreSQL
+     postgresql:stop          Stop the PostgreSQL docker container
 ```
 
 Usage
