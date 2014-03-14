@@ -43,10 +43,16 @@ if [[ -n "$id" ]]; then
 fi
 
 case "$1" in
+  postgresql:admin_console)
+    check_container
+
+    PGPASSWORD=$(cat "$DOKKU_ROOT/.postgresql/admin_pw") PGUSER=root psql -p "$postgresql_public_ip" -h localhost postgres
+    ;;
   postgresql:console)
     check_container
     check_app
     check_exists
+
     PGPASSWORD=$(cat "$DOKKU_ROOT/.postgresql/pass_$APP") PGUSER="$APP" psql -p "$postgresql_public_ip" -h localhost "$postgresql_database"
     ;;
   postgresql:create)
@@ -102,6 +108,7 @@ case "$1" in
     ;;
   help)
     cat && cat<<EOF
+    postgresql:admin_console Launch a postgresql console as admin user
     postgresql:console <app> Launch a postgresql console for a given app
     postgresql:create <app>  Create a Postgresql database
     postgresql:delete <app>  Delete specified Postgresql database
