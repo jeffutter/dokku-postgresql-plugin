@@ -46,14 +46,14 @@ case "$1" in
   postgresql:admin_console)
     check_container
 
-    PGPASSWORD=$(cat "$DOKKU_ROOT/.postgresql/admin_pw") PGUSER=root psql -p "$postgresql_public_ip" -h localhost postgres
+    PGPASSWORD=$(cat "$DOKKU_ROOT/.postgresql/admin_pw") PGUSER=root psql -p "$postgresql_port" -h localhost postgres
     ;;
   postgresql:console)
     check_container
     check_app
     check_exists
 
-    PGPASSWORD=$(cat "$DOKKU_ROOT/.postgresql/pass_$APP") PGUSER="$APP" psql -p "$postgresql_public_ip" -h localhost "$postgresql_database"
+    PGPASSWORD=$(cat "$DOKKU_ROOT/.postgresql/pass_$APP") PGUSER="$APP" psql -p "$postgresql_port" -h localhost "$postgresql_database"
     ;;
   postgresql:create)
     check_container
