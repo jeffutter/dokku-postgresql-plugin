@@ -43,6 +43,12 @@ if [[ -n "$id" ]]; then
 fi
 
 case "$1" in
+  postgresql:console)
+    check_container
+    check_app
+    check_exists
+    PGPASSWORD=$(cat "$DOKKU_ROOT/.postgresql/pass_$APP") PGUSER="$APP" psql -p "$postgresql_public_ip" -h localhost "$postgresql_database"
+    ;;
   postgresql:create)
     check_container
     check_app
@@ -96,12 +102,13 @@ case "$1" in
     ;;
   help)
     cat && cat<<EOF
-    postgresql:create <app> Create a Postgresql database
-    postgresql:delete <app> Delete specified Postgresql database
-    postgresql:start        Start the Postgresql docker container if it isn't running
-    postgresql:stop         Stop the Postgresql docker container
-    postgresql:status       Shows status of Postgresql
-    postgresql:list         List all databases
+    postgresql:console <app> Launch a postgresql console for a given app
+    postgresql:create <app>  Create a Postgresql database
+    postgresql:delete <app>  Delete specified Postgresql database
+    postgresql:start         Start the Postgresql docker container if it isn't running
+    postgresql:stop          Stop the Postgresql docker container
+    postgresql:status        Shows status of Postgresql
+    postgresql:list          List all databases
 EOF
     ;;
 esac
