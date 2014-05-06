@@ -4,13 +4,15 @@
 db_image="jeffutter/postgresql"
 docker pull "$db_image"
 
-apt-get -y install postgresql-client-9.1
+[[ $(lsb_release -cs) = 'trusty' ]] && psql_version="9.3" || psql_version="9.1"
+[[ $(docker run --rm=true "$db_image" lsb_release -cs) = 'trusty' ]] && docker_psql_version="9.3" || docker_psql_version="9.1"
+apt-get -y install "postgresql-client-$psql_version"
 
 if [[ ! -d "$DOKKU_ROOT/.postgresql" ]]; then
   mkdir -p "$DOKKU_ROOT/.postgresql"
   mkdir -p "$DOKKU_ROOT/.postgresql/data"
-  docker run "$db_image" tar -cvps -C /var/lib/postgresql/9.1/main ./ | tar -xv -C "$DOKKU_ROOT/.postgresql/data/" -f -
-  docker run "$db_image" chown -R postgres:postgres /var/lib/postgresql/9.1/main
+  docker run "$db_image" tar -cvps -C "/var/lib/postgresql/$docker_psql_version/main" ./ | tar -xv -C "$DOKKU_ROOT/.postgresql/data/" -f -
+  docker run "$db_image" chown -R postgres:postgres "/var/lib/postgresql/$docker_psql_version/main"
 
   if [[ ! -f "$DOKKU_ROOT/.postgresql/admin_pw" ]]; then
     admin_pass=$(openssl rand -base64 32|base64)
@@ -19,6 +21,6 @@ if [[ ! -d "$DOKKU_ROOT/.postgresql" ]]; then
     chown dokku: "$DOKKU_ROOT/.postgresql"
     chown dokku: "$DOKKU_ROOT/.postgresql/admin_pw"
 
-    docker run -v "$DOKKU_ROOT/.postgresql/data":/var/lib/postgresql/9.1/main "$db_image" su postgres -c "/usr/lib/postgresql/9.1/bin/postgres --single -D /var/lib/postgresql/9.1/main -c config_file=/etc/postgresql/9.1/main/postgresql.conf <<< \"CREATE USER root WITH SUPERUSER PASSWORD '${admin_pass}';\""
+    docker run -v "$DOKKU_ROOT/.postgresql/data":"/var/lib/postgresql/$docker_psql_version/main" "$db_image" su postgres -c "/usr/lib/postgresql/$docker_psql_version/bin/postgres --single -D /var/lib/postgresql/$docker_psql_version/main -c config_file=/etc/postgresql/$docker_psql_version/main/postgresql.conf <<< \"CREATE USER root WITH SUPERUSER PASSWORD '${admin_pass}';\""
   fi
 fi
