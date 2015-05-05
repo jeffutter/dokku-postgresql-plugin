@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Build MongoDB image
+# Build Postgres image
 db_image="jeffutter/postgresql"
 docker pull "$db_image"
 
