@@ -107,6 +107,16 @@ case "$1" in
       echo "Postgresql container not running"
     fi
     ;;
+  postgresql:dump)
+    check_container
+    check_app
+    check_exists
+    PGPASSWORD=$(cat "$DOKKU_ROOT/.postgresql/pass_$APP") PGUSER="$APP" pg_dump -p "$postgresql_port" -h localhost "$postgresql_database"
+    ;;
+  postgresql:dump_all)
+    check_container
+    PGPASSWORD=$(cat "$DOKKU_ROOT/.postgresql/admin_pw") PGUSER=root pg_dumpall -p "$postgresql_port" -h localhost
+    ;;
   help)
     cat && cat<<EOF
     postgresql:admin_console Launch a postgresql console as admin user
@@ -117,6 +127,8 @@ case "$1" in
     postgresql:stop          Stop the Postgresql docker container
     postgresql:status        Shows status of Postgresql
     postgresql:list          List all databases
+    postgresql:dump <app>    Dump <app> database to standard out
+    postgresql:dump_all      Dump all databases to standard out
 EOF
     ;;
 esac
