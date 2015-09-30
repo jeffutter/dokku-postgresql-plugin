@@ -1,7 +1,10 @@
-[![Join the chat at https://gitter.im/jeffutter/dokku-postgresql-plugin](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/jeffutter/dokku-postgresql-plugin?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+### This Plugin is Depreciated  ###
+There is an official postgresql plugin for dokku hosted in the dokku org: https://github.com/dokku/dokku-postgres . I would recommend new users look there first. I will still maintain issues and pull requests here, but encourage users to consider migrating to the official plugin as it will get better support.
+
 
 PostgreSQL plugin for Dokku
 ---------------------------
+[![Join the chat at https://gitter.im/jeffutter/dokku-postgresql-plugin](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/jeffutter/dokku-postgresql-plugin?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 Project: https://github.com/progrium/dokku
 
